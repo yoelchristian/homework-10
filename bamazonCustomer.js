@@ -45,7 +45,7 @@ connection.query("SELECT * FROM products", function(error, result){
         },
         function(err, res) {
             if(err) {
-                console.log("Item ID not found!");
+                console.log(err);
             }
             if(!res.length) {
                 console.log("Item ID not found!");
@@ -62,14 +62,27 @@ connection.query("SELECT * FROM products", function(error, result){
                         default: true
                         },
                     ])
-                    .then(function(inquirerResponse) {
+                    .then(function() {
+                        connection.query("UPDATE products SET ? WHERE ?", [
+                            {
+                                stock_quantity: res[0].stock_quantity - iResponse.itemQty,
+                            },
+                            {
+                                item_id: iResponse.itemId,
+                            }
+                        ], function(error, result) {
+                            if(error) {
+                                console.log(error);
+                            }
+                        }); 
                         console.log("Purchase Successful");
-                        console.log("Total amount: $" + Number(iResponse.itemQty)*Number(res[0].price));
+                        console.log("Total amount: $" + parseFloat(Number(iResponse.itemQty)*Number(res[0].price)).toFixed(2));
                     });
                 }
                 else {
                     console.log("Sorry we currently do not have that many in our stock");
                     console.log("Stock remaining for this item: " + res[0].stock_quantity);
+                    customerPrompt();
                 }
             }
         })
